@@ -4,6 +4,9 @@ import com.example.ecommerce.dto.ProductRequestDto;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.exception.ResourceNotFoundException;
 import com.example.ecommerce.repository.ProductRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,7 +35,10 @@ public class ProductService {
                 ));
     }
 
-    public List<Product> getAllProducts(){
-        return productRepository.findAll();
+    public Page<Product> getProducts(int page,int size){
+        PageRequest pageRequest = PageRequest.of(
+                page,size, Sort.by("price").ascending()
+        );
+        return productRepository.findAll(pageRequest);
     }
 }

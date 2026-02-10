@@ -4,6 +4,8 @@ import com.example.ecommerce.dto.ProductRequestDto;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.service.ProductService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,8 +32,11 @@ public class ProductController {
         return productService.getProductById(id);
     }
 
-    @GetMapping
-    public List<Product> getAllProducts(){
-        return productService.getAllProducts();
+    @GetMapping("/paged")
+    public Page<Product> getProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size){
+        return productService.getProducts(page,size);
     }
+
 }
