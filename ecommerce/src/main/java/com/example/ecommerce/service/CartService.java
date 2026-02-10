@@ -32,7 +32,7 @@ public class CartService {
         return cartRepository.save(cart);
     }
     public Cart getCart(Long cartId){
-        return cartRepository.findById(cartId)
+        return cartRepository.findCartWithItems(cartId)
                 .orElseThrow(()->
                         new IllegalArgumentException("Cart not found with id: "+cartId)
                 );
