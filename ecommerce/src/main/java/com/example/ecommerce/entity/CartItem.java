@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 
 import java.math.BigDecimal;
 
+@Entity
 public class CartItem {
 
     @Id
