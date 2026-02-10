@@ -2,6 +2,7 @@ package com.example.ecommerce.dto;
 
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
@@ -15,11 +16,10 @@ public class ProductRequestDto {
     @NotBlank
     private String description;
 
-    @NotBlank
     @Positive
+    @NotNull
     private BigDecimal price;
 
-    @NotBlank
     @PositiveOrZero
     private int quantity;
 
