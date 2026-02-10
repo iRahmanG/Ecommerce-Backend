@@ -2,6 +2,7 @@ package com.example.ecommerce.entity;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,18 @@ public class Cart {
 
     public void remove(CartItem item){
         items.remove(item);
+        item.setCart(null);
+    }
+    public BigDecimal getTotalPrice(){
+        return items.stream()
+                .map(CartItem::getTotalPrice)
+                .reduce(BigDecimal.ZERO,BigDecimal::add);
+    }
+
+    public int getTotalQuantity(){
+        return items.stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
     }
 
 }

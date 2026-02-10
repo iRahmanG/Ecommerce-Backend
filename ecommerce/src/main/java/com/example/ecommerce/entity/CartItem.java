@@ -60,4 +60,8 @@ public class CartItem {
     public void setCart(Cart cart){
         this.cart=cart;
     }
+    public BigDecimal getTotalPrice(){
+        return product.getPrice()
+                .multiply(BigDecimal.valueOf(quantity));
+    }
 }
