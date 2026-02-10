@@ -1,5 +1,6 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.dto.CartResponseDto;
 import com.example.ecommerce.entity.Cart;
 import com.example.ecommerce.service.CartService;
 import org.springframework.web.bind.annotation.*;
@@ -19,8 +20,8 @@ public class CartController {
     }
 
     @GetMapping("/{cardId}")
-    public Cart getCart(@PathVariable Long cartId){
-        return cartService.getCart(cartId);
+    public CartResponseDto getCart(@PathVariable Long cartId){
+        return cartService.getCartResponse(cartId);
     }
 
     @PostMapping("/{cartId}/items")
@@ -31,5 +32,6 @@ public class CartController {
     ){
         cartService.addProductToCart(cartId,productId,quantity);
     }
+
 
 }

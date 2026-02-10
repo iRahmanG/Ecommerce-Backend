@@ -1,5 +1,7 @@
 package com.example.ecommerce.service;
 
+import com.example.ecommerce.dto.CartItemResponseDto;
+import com.example.ecommerce.dto.CartResponseDto;
 import com.example.ecommerce.entity.Cart;
 import com.example.ecommerce.entity.CartItem;
 import com.example.ecommerce.entity.Product;
@@ -8,6 +10,8 @@ import com.example.ecommerce.repository.CartRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -54,5 +58,24 @@ public class CartService {
     }
     public void removeItem(Long cartItemId){
         cartItemRepository.deleteById(cartItemId);
+    }
+    public CartResponseDto getCartResponse(Long cartId){
+        Cart cart = getCart(cartId);
+
+        List<CartItemResponseDto> items = cart.getItems().stream()
+                .map(item -> new CartItemResponseDto(
+                        item.getProduct().getId(),
+                        item.getProduct().getName(),
+                        item.getProduct().getPrice(),
+                        item.getQuantity(),
+                        item.getTotalPrice()
+                ))
+                .toList();
+        return new CartResponseDto(
+                cart.getId(),
+                items,
+                cart.getTotalPrice(),
+                cart.getTotalQuantity()
+        );
     }
 }
