@@ -18,6 +18,9 @@ public class Product {
     @Column(nullable = false)
     private int stock;
 
+    @Version
+    private Long version;
+
     protected Product(){
 
     }
