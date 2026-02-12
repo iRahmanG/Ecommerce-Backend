@@ -23,42 +23,61 @@ public class OrderService {
     }
 
     @Transactional
-    public Order placeOrder(Long cartId){
+    public Order placeOrder(Long cartId) {
+
         Cart cart = cartService.getCartEntity(cartId);
-        if(cart.getCartItems().isEmpty()){
-            throw new IllegalStateException("Cart is Empty");
+
+        if (cart.getCartItems().isEmpty()) {
+            throw new IllegalStateException("Cart is empty");
         }
+
+        //  Validate stock
+        for (CartItem cartItem : cart.getCartItems()) {
+            Product product = cartItem.getProduct();
+
+            if (product.getStock() < cartItem.getQuantity()) {
+                throw new IllegalStateException(
+                        "Product out of stock: " + product.getName()
+                );
+            }
+        }
+
+        //  Create Order
         Order order = new Order();
-//        order.setUser(cart.getUser());
+//        order.setCart(cart);
+        order.setStatus(OrderStatus.CREATED);
 
         List<OrderItem> orderItems = new ArrayList<>();
 
-        for(CartItem cartItem: cart.getCartItems()) {
-            Product product = cartItem.getProduct();
-            if (product.getStock() < cartItem.getQuantity()) {
-                throw new IllegalStateException("Product out of stock:");
-            }
-        }
-        for(CartItem cartItem:cart.getCartItems()){
+        //  Reduce stock + create order items
+        for (CartItem cartItem : cart.getCartItems()) {
+
             Product product = cartItem.getProduct();
 
             product.setStock(product.getStock() - cartItem.getQuantity());
-//            productRepository.save(product);  Hibernate handles automatically b checking Dirty Read
 
             OrderItem orderItem = new OrderItem(
                     product,
                     cartItem.getQuantity(),
                     product.getPrice()
             );
+
             orderItem.setOrder(order);
             orderItems.add(orderItem);
         }
-        order.setOrderItems(orderItems);
-        order.setPaymentStatus("CREATED")   ;
+
+        for (OrderItem item : orderItems) {
+            order.addOrderItem(item);
+        }
+
+        order.setUser(cart.getUser());
 
         Order savedOrder = orderRepository.save(order);
+
+        // Clear cart
         cart.getCartItems().clear();
 
         return savedOrder;
     }
 }
+

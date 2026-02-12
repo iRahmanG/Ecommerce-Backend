@@ -1,5 +1,6 @@
 package com.example.ecommerce.entity;
 
+import com.sun.jdi.PrimitiveValue;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -24,8 +25,9 @@ public class Order {
             fetch = FetchType.LAZY)
     private List<OrderItem> orderItems=new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String paymentStatus;
+    private OrderStatus status;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -50,17 +52,12 @@ public class Order {
         return orderItems;
     }
 
-    public void setOrderItems(List<OrderItem> orderItems) {
-        this.orderItems = orderItems;
-    }
-
-    public String getPaymentStatus() {
-        return paymentStatus;
-    }
-
-    public void setPaymentStatus(String paymentStatus) {
-        this.paymentStatus = paymentStatus;
-    }
+//    public void setOrderItems(List<OrderItem> orderItems) {
+//        this.orderItems = orderItems;
+//    }
+public void setStatus(OrderStatus status) {
+    this.status = status;
+}
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

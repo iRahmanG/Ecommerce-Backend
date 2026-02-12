@@ -23,7 +23,15 @@ public class Cart {
     )
     private List<CartItem> cartItems=new ArrayList<>();
 
-//    protected Cart(){
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    //    protected Cart(){
 //
 //    }
     public Cart(){
@@ -61,4 +69,7 @@ public class Cart {
                 .sum();
     }
 
+    public User getUser() {
+        return user;
+    }
 }
