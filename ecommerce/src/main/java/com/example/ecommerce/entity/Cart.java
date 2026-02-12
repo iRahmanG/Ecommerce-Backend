@@ -14,14 +14,14 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private LocalDateTime createdAt;
+    private final LocalDateTime createdAt;
 
     @OneToMany(
             mappedBy = "cart",
             cascade=CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<CartItem> items=new ArrayList<>();
+    private List<CartItem> cartItems=new ArrayList<>();
 
 //    protected Cart(){
 //
@@ -36,27 +36,27 @@ public class Cart {
         return createdAt;
     }
 
-    public List<CartItem> getItems(){
-        return items;
+    public List<CartItem> getCartItems(){
+        return cartItems;
     }
 
     public void addItem(CartItem item){
         item.setCart(this);
-        items.add(item);
+        cartItems.add(item);
     }
 
     public void remove(CartItem item){
-        items.remove(item);
+        cartItems.remove(item);
         item.setCart(null);
     }
     public BigDecimal getTotalPrice(){
-        return items.stream()
+        return cartItems.stream()
                 .map(CartItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO,BigDecimal::add);
     }
 
     public int getTotalQuantity(){
-        return items.stream()
+        return cartItems.stream()
                 .mapToInt(CartItem::getQuantity)
                 .sum();
     }

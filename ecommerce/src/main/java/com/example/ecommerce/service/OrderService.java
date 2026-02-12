@@ -29,7 +29,7 @@ public class OrderService {
             throw new IllegalStateException("Cart is Empty");
         }
         Order order = new Order();
-        order.setUser(cart.getUser());
+//        order.setUser(cart.getUser());
 
         List<OrderItem> orderItems = new ArrayList<>();
 

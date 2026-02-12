@@ -1,9 +1,10 @@
 package com.example.ecommerce.entity;
 
 import jakarta.persistence.*;
-import org.apache.catalina.User;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name ="orders")
@@ -21,7 +22,7 @@ public class Order {
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY)
-    private List<OrderItem> orderItems;
+    private List<OrderItem> orderItems=new ArrayList<>();
 
     @Column(nullable = false)
     private String paymentStatus;
@@ -63,6 +64,12 @@ public class Order {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    //Bidirectional consistency
+    public void addOrderItem(OrderItem item) {
+        orderItems.add(item);
+        item.setOrder(this);
     }
 
 }

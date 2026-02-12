@@ -15,6 +15,9 @@ public class Product {
     private BigDecimal price;
     private int quantity;
 
+    @Column(nullable = false)
+    private int stock;
+
     protected Product(){
 
     }
@@ -50,5 +53,11 @@ public class Product {
 
     public int getQuantity() {
         return quantity;
+    }
+    public int getStock(){
+        return stock;
+    }
+    public void setStock(int stock){
+        this.stock=stock;
     }
 }

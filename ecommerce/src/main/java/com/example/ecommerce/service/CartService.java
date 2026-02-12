@@ -63,7 +63,7 @@ public class CartService {
     public CartResponseDto getCartResponse(Long cartId){
         Cart cart = getCart(cartId);
 
-        List<CartItemResponseDto> items = cart.getItems().stream()
+        List<CartItemResponseDto> items = cart.getCartItems().stream()
                 .map(item -> new CartItemResponseDto(
                         item.getProduct().getId(),
                         item.getProduct().getName(),
