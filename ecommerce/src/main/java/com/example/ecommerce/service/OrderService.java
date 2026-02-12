@@ -1,5 +1,7 @@
 package com.example.ecommerce.service;
 
+import com.example.ecommerce.dto.OrderItemResponse;
+import com.example.ecommerce.dto.OrderResponse;
 import com.example.ecommerce.entity.*;
 import com.example.ecommerce.repository.OrderRepository;
 import com.example.ecommerce.repository.ProductRepository;
@@ -12,6 +14,7 @@ import java.util.List;
 
 @Service
 public class OrderService {
+
     private final CartService cartService;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
@@ -29,7 +32,7 @@ public class OrderService {
     }
 
     @Transactional
-    public Order placeOrder(Long cartId) {
+    public OrderResponse placeOrder(Long cartId) {
 
         try{
             Cart cart = cartService.getCartEntity(cartId);
@@ -86,10 +89,29 @@ public class OrderService {
             // Clear cart
             cart.getCartItems().clear();
 
-            return savedOrder;
+            return mapToResponse(savedOrder);
         }catch (OptimisticLockException e){
             throw new RuntimeException("Product was updated by another transaction. Please retry.");
         }
+    }
+
+
+    private OrderResponse mapToResponse(Order order){
+
+        List<OrderItemResponse> itemResponses = order.getOrderItems()
+                .stream()
+                .map(item -> new OrderItemResponse(
+                        item.getProduct().getName(),
+                        item.getQuantity(),
+                        item.getPrice()
+                ))
+                .toList();
+        return new OrderResponse(
+                order.getOrderId(),
+                order.getStatus().name(),
+                order.getCreatedAt(),
+                itemResponses
+        );
     }
 }
 
