@@ -33,11 +33,14 @@ public class OrderService {
 
         List<OrderItem> orderItems = new ArrayList<>();
 
-        for(CartItem cartItem: cart.getCartItems()){
+        for(CartItem cartItem: cart.getCartItems()) {
             Product product = cartItem.getProduct();
-            if(product.getStock()<cartItem.getQuantity()){
+            if (product.getStock() < cartItem.getQuantity()) {
                 throw new IllegalStateException("Product out of stock:");
             }
+        }
+        for(CartItem cartItem:cart.getCartItems()){
+            Product product = cartItem.getProduct();
 
             product.setStock(product.getStock() - cartItem.getQuantity());
 //            productRepository.save(product);  Hibernate handles automatically b checking Dirty Read
