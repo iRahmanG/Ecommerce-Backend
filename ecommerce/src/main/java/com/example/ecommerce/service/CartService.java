@@ -8,6 +8,7 @@ import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.repository.CartItemRepository;
 import com.example.ecommerce.repository.CartRepository;
 import com.example.ecommerce.repository.ProductRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -77,5 +78,12 @@ public class CartService {
                 cart.getTotalPrice(),
                 cart.getTotalQuantity()
         );
+    }
+
+    public Cart getCartEntity(Long cartId){
+        Cart cart= cartRepository.findById(cartId)
+                .orElseThrow(()-> new EntityNotFoundException("Cart Entity not found with id: "+cartId)
+                );
+        return cart;
     }
 }
