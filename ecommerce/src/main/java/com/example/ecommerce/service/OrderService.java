@@ -14,12 +14,17 @@ public class OrderService {
     private final CartService cartService;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
+    private final PaymentService paymentService;
 
 
-    public OrderService(CartService cartService, OrderRepository orderRepository, ProductRepository productRepository) {
+    public OrderService(CartService cartService,
+                        OrderRepository orderRepository,
+                        ProductRepository productRepository,
+                        PaymentService paymentService) {
         this.cartService = cartService;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
+        this.paymentService=paymentService;
     }
 
     @Transactional
@@ -44,7 +49,7 @@ public class OrderService {
 
         //  Create Order
         Order order = new Order();
-//        order.setCart(cart);
+        order.setUser(cart.getUser());
         order.setStatus(OrderStatus.CREATED);
 
         List<OrderItem> orderItems = new ArrayList<>();
@@ -53,7 +58,6 @@ public class OrderService {
         for (CartItem cartItem : cart.getCartItems()) {
 
             Product product = cartItem.getProduct();
-
             product.setStock(product.getStock() - cartItem.getQuantity());
 
             OrderItem orderItem = new OrderItem(
@@ -61,19 +65,22 @@ public class OrderService {
                     cartItem.getQuantity(),
                     product.getPrice()
             );
-
-            orderItem.setOrder(order);
-            orderItems.add(orderItem);
+            order.addOrderItem(orderItem);
         }
 
         for (OrderItem item : orderItems) {
             order.addOrderItem(item);
         }
-
-        order.setUser(cart.getUser());
-
         Order savedOrder = orderRepository.save(order);
 
+        // Simulate Payment
+        boolean paymentSuccess = paymentService.processPayment();
+
+        if(!paymentSuccess){
+            savedOrder.markAsPaymentFailed();
+            throw new RuntimeException("Payment failed. Transaction rolled back");
+        }
+        savedOrder.markAsPaid();
         // Clear cart
         cart.getCartItems().clear();
 
