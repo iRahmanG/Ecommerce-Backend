@@ -13,5 +13,54 @@ public class Product {
     private String name;
    private String description;
     private BigDecimal price;
-    int quantity;
+    private int quantity;
+
+    @Column(nullable = false)
+    private int stock;
+
+    @Version
+    private Long version;
+
+    protected Product(){
+
+    }
+
+    public Product(String name, String description, BigDecimal price, int quantity) {
+        if(price.compareTo(BigDecimal.ZERO)<=0){
+            throw new IllegalArgumentException("Price must be positive");
+        }
+        if(quantity<0){
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        }
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.quantity = quantity;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+    public int getStock(){
+        return stock;
+    }
+    public void setStock(int stock){
+        this.stock=stock;
+    }
 }
