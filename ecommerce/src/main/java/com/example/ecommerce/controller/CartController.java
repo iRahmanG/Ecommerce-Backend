@@ -19,7 +19,7 @@ public class CartController {
         return cartService.createCart();
     }
 
-    @GetMapping("/{cardId}")
+    @GetMapping("/{cartId}")
     public CartResponseDto getCart(@PathVariable Long cartId){
         return cartService.getCartResponse(cartId);
     }
@@ -32,6 +32,5 @@ public class CartController {
     ){
         cartService.addProductToCart(cartId,productId,quantity);
     }
-
 
 }
