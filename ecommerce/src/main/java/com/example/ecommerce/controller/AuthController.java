@@ -1,5 +1,6 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.dto.LoginRequest;
 import com.example.ecommerce.dto.RegisterRequest;
 import com.example.ecommerce.service.AuthService;
 import org.springframework.context.annotation.Bean;
@@ -23,5 +24,11 @@ public class AuthController {
     public ResponseEntity<String> register(@RequestBody RegisterRequest request){
         authService.register(request);
         return ResponseEntity.ok("User register successfully");
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest request){
+        authService.login(request);
+        return ResponseEntity.ok("Login successful");
     }
 }

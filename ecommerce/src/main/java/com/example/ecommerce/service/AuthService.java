@@ -1,5 +1,6 @@
 package com.example.ecommerce.service;
 
+import com.example.ecommerce.dto.LoginRequest;
 import com.example.ecommerce.dto.RegisterRequest;
 import com.example.ecommerce.entity.User;
 import com.example.ecommerce.repository.UserRepository;
@@ -28,5 +29,13 @@ public class AuthService {
 
         userRepository.save(user);
 
+    }
+
+    public void login(LoginRequest request){
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new RuntimeException("Invalid username"));
+        if(!passwordEncoder.matches(request.getPassword(), user.getPassword())){
+            throw new RuntimeException("Invalid password");
+        }
     }
 }
