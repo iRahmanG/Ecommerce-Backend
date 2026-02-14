@@ -23,6 +23,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     public Product createProduct(@Valid @RequestBody ProductRequestDto dto){
         return productService.createProduct(dto);
@@ -39,13 +40,6 @@ public class ProductController {
             @RequestParam(defaultValue = "10") int size){
         return productService.getProducts(page,size);
     }
-
-//    @PostMapping("/api/products")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public Product createProduct(@RequestBody ProductRequestDto product){
-//        return productService.createProduct(product)
-//    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
