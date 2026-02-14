@@ -26,9 +26,20 @@ public class AuthController {
         return ResponseEntity.ok("User register successfully");
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request){
-        authService.login(request);
-        return ResponseEntity.ok("Login successful");
+//    @PostMapping("/login")
+//    public ResponseEntity<String> login(@RequestBody LoginRequest request){
+//        String token = authService.login(request);
+//        return ResponseEntity.ok("Login successful");
+//    }
+@PostMapping("/login")
+public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    try {
+        String token = authService.login(request);
+        return ResponseEntity.ok(token);
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.internalServerError().body(e.getMessage());
     }
+}
+
 }
