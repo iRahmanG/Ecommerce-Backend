@@ -86,4 +86,12 @@ public class CartService {
                 );
         return cart;
     }
+
+    public void clearCart(Cart cart) {
+        if(cart.getCartItems()==null || cart.getCartItems().isEmpty()){
+            return;
+        }
+        cart.getCartItems().clear();
+        cartRepository.save(cart);
+    }
 }

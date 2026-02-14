@@ -65,11 +65,10 @@ public class OrderService {
             for (CartItem cartItem : cart.getCartItems()) {
                 Product product = productRepository.findById(cartItem.getProduct().getId())
                         .orElseThrow(()-> new RuntimeException("Product not found"));
-                if(product.getQuantity() < cartItem.getQuantity()){
-                    throw new IllegalStateException("Insufficient stock for product: "+product.getName());
-                }
+
                 // deduct stock
-                product.setStock(product.getStock() - cartItem.getQuantity());
+                product.reduceStock(cartItem.getQuantity());
+
                 OrderItem orderItem = new OrderItem(
                         product,
                         cartItem.getQuantity(),
@@ -94,8 +93,9 @@ public class OrderService {
                 throw new RuntimeException("Payment failed. Transaction rolled back");
             }
             order.markAsPaid();
+
             // Clear cart
-            cart.getCartItems().clear();
+            cartService.clearCart(cart);
 
             return mapToResponse(order);
 
