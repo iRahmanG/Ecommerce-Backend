@@ -53,7 +53,7 @@ public class Cart {
         items.add(item);
     }
 
-    public void remove(CartItem item){
+    public void removeItem(CartItem item){
         items.remove(item);
         item.setCart(null);
     }

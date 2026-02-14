@@ -47,10 +47,20 @@ public class CartService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(()-> new IllegalArgumentException("Product not found")
                 );
-        CartItem cartItem =cartItemRepository.findByCartIdAndProductId(cartId,productId)
+
+        // validate stock availability
+        if(product.getStock()<quantity){
+            throw new IllegalStateException("Insufficient stock");
+        }
+        CartItem cartItem =cartItemRepository
+                .findByCartIdAndProductId(cartId,productId)
                 .orElse(null);
 
         if(cartItem!=null){
+            int newQuantity = cartItem.getQuantity()+quantity;
+            if(product.getStock()<newQuantity){
+                throw new IllegalStateException("Adding this quantity exceeds available stock");
+            }
             cartItem.increaseQuantity(quantity);
         }else{
             CartItem newItem = new CartItem(product,quantity);
@@ -58,8 +68,13 @@ public class CartService {
         }
     }
     public void removeItem(Long cartItemId){
-        cartItemRepository.deleteById(cartItemId);
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                        .orElseThrow(()->new EntityNotFoundException("Cart item not found"));
+        cartItem.getCart().removeItem(cartItem);
+
+        cartItemRepository.delete(cartItem);
     }
+
     public CartResponseDto getCartResponse(Long cartId){
         Cart cart = getCart(cartId);
 
