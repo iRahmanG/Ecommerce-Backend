@@ -1,19 +1,22 @@
 package com.example.ecommerce.entity;
 
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "products")
 public class Product {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
-   private String description;
+
+    private String description;
+
+    @Column(nullable = false)
     private BigDecimal price;
-    private int quantity;
 
     @Column(nullable = false)
     private int stock;
@@ -21,46 +24,47 @@ public class Product {
     @Version
     private Long version;
 
-    protected Product(){
+    protected Product() {}
 
-    }
+    public Product(String name, String description, BigDecimal price, int stock) {
 
-    public Product(String name, String description, BigDecimal price, int quantity) {
-        if(price.compareTo(BigDecimal.ZERO)<=0){
+        if (price.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Price must be positive");
         }
-        if(quantity<0){
-            throw new IllegalArgumentException("Quantity cannot be negative");
+
+        if (stock < 0) {
+            throw new IllegalArgumentException("Stock cannot be negative");
         }
+
         this.name = name;
         this.description = description;
         this.price = price;
-        this.quantity = quantity;
+        this.stock = stock;
     }
 
-    public Long getId() {
-        return id;
+    // ===== Business Methods =====
+
+    public void reduceStock(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+
+        if (this.stock < quantity) {
+            throw new IllegalStateException("Insufficient stock for product: " + name);
+        }
+
+        this.stock -= quantity;
     }
 
-    public String getDescription() {
-        return description;
-    }
+    // ===== Getters =====
 
-    public String getName() {
-        return name;
-    }
+    public Long getId() { return id; }
 
-    public BigDecimal getPrice() {
-        return price;
-    }
+    public String getName() { return name; }
 
-    public int getQuantity() {
-        return quantity;
-    }
-    public int getStock(){
-        return stock;
-    }
-    public void setStock(int stock){
-        this.stock=stock;
-    }
+    public String getDescription() { return description; }
+
+    public BigDecimal getPrice() { return price; }
+
+    public int getStock() { return stock; }
 }

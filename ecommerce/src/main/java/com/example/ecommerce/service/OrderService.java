@@ -5,65 +5,69 @@ import com.example.ecommerce.dto.OrderResponse;
 import com.example.ecommerce.entity.*;
 import com.example.ecommerce.repository.OrderRepository;
 import com.example.ecommerce.repository.ProductRepository;
+import com.example.ecommerce.repository.UserRepository;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import org.springframework.security.access.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 public class OrderService {
 
     private final CartService cartService;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final PaymentService paymentService;
+    private final UserRepository userRepository;
 
 
     public OrderService(CartService cartService,
                         OrderRepository orderRepository,
                         ProductRepository productRepository,
-                        PaymentService paymentService) {
+                        PaymentService paymentService,
+                        UserRepository userRepository) {
         this.cartService = cartService;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.paymentService=paymentService;
+        this.userRepository = userRepository;
     }
 
     @Transactional
     public OrderResponse placeOrder(Long cartId) {
 
         try{
+            String username = SecurityContextHolder.getContext()
+                    .getAuthentication()
+                    .getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(()-> new RuntimeException("User not found"));
+
             Cart cart = cartService.getCartEntity(cartId);
 
-            if (cart.getCartItems().isEmpty()) {
-                throw new IllegalStateException("Cart is empty");
+            //verify cart ownership
+            if(!cart.getUser().getUsername().equals(username)){
+                throw new AccessDeniedException("you cannot place order for this cart");
             }
-
+            if(cart.getCartItems().isEmpty()){
+                throw  new IllegalStateException("Cart is empty");
+            }
+            Order order = new Order(user);
+            BigDecimal totalAmount = BigDecimal.ZERO;
             //  Validate stock
             for (CartItem cartItem : cart.getCartItems()) {
-                Product product = cartItem.getProduct();
+                Product product = productRepository.findById(cartItem.getProduct().getId())
+                        .orElseThrow(()-> new RuntimeException("Product not found"));
 
-                if (product.getStock() < cartItem.getQuantity()) {
-                    throw new IllegalStateException(
-                            "Product out of stock: " + product.getName()
-                    );
-                }
-            }
-
-            //  Create Order
-            Order order = new Order();
-            order.setUser(cart.getUser());
-            order.setStatus(OrderStatus.CREATED);
-
-            List<OrderItem> orderItems = new ArrayList<>();
-
-            //  Reduce stock + create order items
-            for (CartItem cartItem : cart.getCartItems()) {
-
-                Product product = cartItem.getProduct();
-                product.setStock(product.getStock() - cartItem.getQuantity());
+                // deduct stock
+                product.reduceStock(cartItem.getQuantity());
 
                 OrderItem orderItem = new OrderItem(
                         product,
@@ -71,27 +75,34 @@ public class OrderService {
                         product.getPrice()
                 );
                 order.addOrderItem(orderItem);
-            }
 
-            for (OrderItem item : orderItems) {
-                order.addOrderItem(item);
+                totalAmount = totalAmount.add(
+                        product.getPrice()
+                                .multiply(BigDecimal.valueOf(cartItem.getQuantity()))
+                );
             }
-            Order savedOrder = orderRepository.save(order);
+            //set total amount and save order in database
+            order.setTotalAmount(totalAmount);
+            order=orderRepository.save(order);
 
             // Simulate Payment
             boolean paymentSuccess = paymentService.processPayment();
 
             if(!paymentSuccess){
-                savedOrder.markAsPaymentFailed();
+                order.markAsPaymentFailed();
                 throw new RuntimeException("Payment failed. Transaction rolled back");
             }
-            savedOrder.markAsPaid();
-            // Clear cart
-            cart.getCartItems().clear();
+            order.markAsPaid();
 
-            return mapToResponse(savedOrder);
+            // Clear cart
+            cartService.clearCart(cart);
+
+            return mapToResponse(order);
+
         }catch (OptimisticLockException e){
             throw new RuntimeException("Product was updated by another transaction. Please retry.");
+        } catch (AccessDeniedException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -113,5 +124,38 @@ public class OrderService {
                 itemResponses
         );
     }
+
+    public List<OrderResponse> getOrdersForCurrentUser(){
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(()-> new RuntimeException("user not found"));
+
+        return orderRepository.findByUser(user)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public OrderResponse updateOrderStatus(Long orderId,OrderStatus status){
+        Order order  = orderRepository.findById(orderId)
+                .orElseThrow(()-> new RuntimeException("Order not found"));
+
+        order.setStatus(status);
+
+        return mapToResponse(orderRepository.save(order));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<OrderResponse> getAllOrders(){
+        return orderRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
 }
 

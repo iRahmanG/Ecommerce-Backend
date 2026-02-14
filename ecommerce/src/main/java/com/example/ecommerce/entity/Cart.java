@@ -21,7 +21,7 @@ public class Cart {
             cascade=CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<CartItem> cartItems=new ArrayList<>();
+    private List<CartItem> items=new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -45,26 +45,26 @@ public class Cart {
     }
 
     public List<CartItem> getCartItems(){
-        return cartItems;
+        return items;
     }
 
     public void addItem(CartItem item){
         item.setCart(this);
-        cartItems.add(item);
+        items.add(item);
     }
 
-    public void remove(CartItem item){
-        cartItems.remove(item);
+    public void removeItem(CartItem item){
+        items.remove(item);
         item.setCart(null);
     }
     public BigDecimal getTotalPrice(){
-        return cartItems.stream()
+        return items.stream()
                 .map(CartItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO,BigDecimal::add);
     }
 
     public int getTotalQuantity(){
-        return cartItems.stream()
+        return items.stream()
                 .mapToInt(CartItem::getQuantity)
                 .sum();
     }
