@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,6 +38,19 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size){
         return productService.getProducts(page,size);
+    }
+
+//    @PostMapping("/api/products")
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public Product createProduct(@RequestBody ProductRequestDto product){
+//        return productService.createProduct(product)
+//    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    public void deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
     }
 
 }

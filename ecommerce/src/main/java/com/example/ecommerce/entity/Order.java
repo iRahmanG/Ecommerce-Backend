@@ -1,6 +1,8 @@
 package com.example.ecommerce.entity;
 
 import jakarta.persistence.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +30,13 @@ public class Order {
     private OrderStatus status;
 
     @Column(nullable = false)
+    private BigDecimal totalAmount;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public Order(){
+    public Order(User user){
+        this.user=user;
         this.createdAt=LocalDateTime.now();
     }
 
@@ -69,7 +75,14 @@ public class Order {
         item.setOrder(this);
     }
 
-//    Lifecycle methods
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount){
+        totalAmount=totalAmount;
+    }
+    //    Lifecycle methods
 //    CREATED → PAID → SHIPPED → DELIVERED
 //                ↘
 //                PAYMENT_FAILED
