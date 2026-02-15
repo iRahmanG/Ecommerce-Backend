@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import org.springframework.security.access.AccessDeniedException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -144,7 +143,13 @@ public class OrderService {
         Order order  = orderRepository.findById(orderId)
                 .orElseThrow(()-> new RuntimeException("Order not found"));
 
-        order.setStatus(status);
+        switch (status){
+            case PAID -> order.markAsPaid();
+            case SHIPPED -> order.markAsShipped();
+            case DELIVERED -> order.markAsDelivered();
+            case CANCELLED -> order.markAsCancel();
+            default -> throw new IllegalStateException("Invalid transition");
+        }
 
         return mapToResponse(orderRepository.save(order));
     }
@@ -155,6 +160,32 @@ public class OrderService {
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @Transactional
+    public OrderResponse cancelOrder(Long orderId){
+        String username = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(()-> new RuntimeException("Order not found with id: "+orderId));
+
+        // verify ownership
+        if(!order.getUser().getUsername().equals(username)){
+            throw new AccessDeniedException("You cannot cancel this order");
+        }
+        // Restore stock
+
+        for(OrderItem item: order.getOrderItems()){
+            Product product=item.getProduct();
+            product.increaseStock(item.getQuantity());
+        }
+        //change Status
+        order.markAsCancel();
+
+        return mapToResponse(order);
     }
 
 }
