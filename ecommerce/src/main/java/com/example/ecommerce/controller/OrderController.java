@@ -28,7 +28,7 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasRole('USER')")
-    public List<OrderResponse> getOrders(Cart cart){
+    public List<OrderResponse> getOrders(){
         return orderService.getAllOrders();
     }
 
@@ -36,8 +36,10 @@ public class OrderController {
     public ResponseEntity<List<OrderResponse>> myOrders(){
         List<OrderResponse> response = orderService.getOrdersForCurrentUser();
         return ResponseEntity.ok(response);
-
     }
-
-
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id){
+        OrderResponse response = orderService.getOrderById(id);
+        return ResponseEntity.ok(response);
+    }
 }

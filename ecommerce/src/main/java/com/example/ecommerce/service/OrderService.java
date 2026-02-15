@@ -8,12 +8,15 @@ import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.UserRepository;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 
 @Service
@@ -191,6 +194,12 @@ public class OrderService {
         return SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
+    }
+
+    public OrderResponse getOrderById(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() ->new ResponseStatusException(HttpStatus.NOT_FOUND,"Order not found with id:"+id));
+        return mapToResponse(order);
     }
 }
 
