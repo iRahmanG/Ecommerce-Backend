@@ -43,9 +43,7 @@ public class OrderService {
     public OrderResponse placeOrder(Long cartId) {
 
         try{
-            String username = SecurityContextHolder.getContext()
-                    .getAuthentication()
-                    .getName();
+            String username = getCurrentUsername();
             User user = userRepository.findByUsername(username)
                     .orElseThrow(()-> new RuntimeException("User not found"));
 
@@ -125,9 +123,7 @@ public class OrderService {
     }
 
     public List<OrderResponse> getOrdersForCurrentUser(){
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+        String username =getCurrentUsername();
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(()-> new RuntimeException("user not found"));
@@ -147,10 +143,12 @@ public class OrderService {
             case PAID -> order.markAsPaid();
             case SHIPPED -> order.markAsShipped();
             case DELIVERED -> order.markAsDelivered();
-            case CANCELLED -> order.markAsCancel();
+            case CANCELLED ->{
+                resStoreStock(order);
+                order.markAsCancel();
+            }
             default -> throw new IllegalStateException("Invalid transition");
         }
-
         return mapToResponse(orderRepository.save(order));
     }
 
@@ -165,9 +163,7 @@ public class OrderService {
     @PreAuthorize("hasRole('USER')")
     @Transactional
     public OrderResponse cancelOrder(Long orderId){
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+        String username = getCurrentUsername();
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(()-> new RuntimeException("Order not found with id: "+orderId));
@@ -176,17 +172,25 @@ public class OrderService {
         if(!order.getUser().getUsername().equals(username)){
             throw new AccessDeniedException("You cannot cancel this order");
         }
-        // Restore stock
-
-        for(OrderItem item: order.getOrderItems()){
-            Product product=item.getProduct();
-            product.increaseStock(item.getQuantity());
-        }
         //change Status
         order.markAsCancel();
 
+        // Restore stock
+        resStoreStock(order);
+
         return mapToResponse(order);
     }
+    private void resStoreStock(Order order){
+        for(OrderItem item:order.getOrderItems()){
+            Product product= item.getProduct();
+            product.increaseStock(item.getQuantity());
+        }
+    }
 
+    private String getCurrentUsername(){
+        return SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+    }
 }
 

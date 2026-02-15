@@ -2,6 +2,7 @@ package com.example.ecommerce.controller;
 
 import com.example.ecommerce.dto.OrderRequest;
 import com.example.ecommerce.dto.OrderResponse;
+import com.example.ecommerce.entity.Cart;
 import com.example.ecommerce.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,8 +28,8 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasRole('USER')")
-    public String getOrders(){
-        return "User Orders";
+    public List<OrderResponse> getOrders(Cart cart){
+        return orderService.getAllOrders();
     }
 
     @GetMapping("/my")
