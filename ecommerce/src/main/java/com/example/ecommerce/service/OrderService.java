@@ -8,13 +8,15 @@ import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.UserRepository;
 import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import org.springframework.security.access.AccessDeniedException;
-import java.util.ArrayList;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.List;
 
 @Service
@@ -44,9 +46,7 @@ public class OrderService {
     public OrderResponse placeOrder(Long cartId) {
 
         try{
-            String username = SecurityContextHolder.getContext()
-                    .getAuthentication()
-                    .getName();
+            String username = getCurrentUsername();
             User user = userRepository.findByUsername(username)
                     .orElseThrow(()-> new RuntimeException("User not found"));
 
@@ -126,9 +126,7 @@ public class OrderService {
     }
 
     public List<OrderResponse> getOrdersForCurrentUser(){
-        String username = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+        String username =getCurrentUsername();
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(()-> new RuntimeException("user not found"));
@@ -144,8 +142,16 @@ public class OrderService {
         Order order  = orderRepository.findById(orderId)
                 .orElseThrow(()-> new RuntimeException("Order not found"));
 
-        order.setStatus(status);
-
+        switch (status){
+            case PAID -> order.markAsPaid();
+            case SHIPPED -> order.markAsShipped();
+            case DELIVERED -> order.markAsDelivered();
+            case CANCELLED ->{
+                resStoreStock(order);
+                order.markAsCancel();
+            }
+            default -> throw new IllegalStateException("Invalid transition");
+        }
         return mapToResponse(orderRepository.save(order));
     }
 
@@ -157,5 +163,43 @@ public class OrderService {
                 .toList();
     }
 
+    @PreAuthorize("hasRole('USER')")
+    @Transactional
+    public OrderResponse cancelOrder(Long orderId){
+        String username = getCurrentUsername();
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(()-> new RuntimeException("Order not found with id: "+orderId));
+
+        // verify ownership
+        if(!order.getUser().getUsername().equals(username)){
+            throw new AccessDeniedException("You cannot cancel this order");
+        }
+        //change Status
+        order.markAsCancel();
+
+        // Restore stock
+        resStoreStock(order);
+
+        return mapToResponse(order);
+    }
+    private void resStoreStock(Order order){
+        for(OrderItem item:order.getOrderItems()){
+            Product product= item.getProduct();
+            product.increaseStock(item.getQuantity());
+        }
+    }
+
+    private String getCurrentUsername(){
+        return SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+    }
+
+    public OrderResponse getOrderById(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() ->new ResponseStatusException(HttpStatus.NOT_FOUND,"Order not found with id:"+id));
+        return mapToResponse(order);
+    }
 }
 

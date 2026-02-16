@@ -15,15 +15,15 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
 
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="user_id",nullable=false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @OneToMany(mappedBy = "order",
             cascade = CascadeType.ALL,
             orphanRemoval = true,
             fetch = FetchType.LAZY)
-    private List<OrderItem> orderItems=new ArrayList<>();
+    private List<OrderItem> orderItems = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -35,9 +35,10 @@ public class Order {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    public Order(User user){
-        this.user=user;
-        this.createdAt=LocalDateTime.now();
+    public Order(User user) {
+        this.user = user;
+        this.createdAt = LocalDateTime.now();
+        this.status = OrderStatus.CREATED;
     }
 
     public Long getOrderId() {
@@ -56,14 +57,9 @@ public class Order {
         return orderItems;
     }
 
-    public void setStatus(OrderStatus status) {
-        this.status = status;
-    }
-
     public OrderStatus getStatus() {
         return status;
     }
-
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
@@ -79,39 +75,46 @@ public class Order {
         return totalAmount;
     }
 
-    public void setTotalAmount(BigDecimal totalAmount){
-        totalAmount=totalAmount;
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
     }
     //    Lifecycle methods
 //    CREATED → PAID → SHIPPED → DELIVERED
 //                ↘
 //                PAYMENT_FAILED
 
-    public  void markAsPaid(){
-        if(this.status!=OrderStatus.CREATED){
+    public void markAsPaid() {
+        if (this.status != OrderStatus.CREATED) {
             throw new IllegalStateException("Order cannot be marked as PAID");
         }
-        this.status=OrderStatus.PAID;
+        this.status = OrderStatus.PAID;
     }
-    public void markAsPaymentFailed(){
-        if(this.status!=OrderStatus.CREATED){
+
+    public void markAsPaymentFailed() {
+        if (this.status != OrderStatus.CREATED) {
             throw new IllegalStateException("payment failure only allowed from CREATED state");
         }
-        this.status=OrderStatus.PAYMENT_FAILED;
+        this.status = OrderStatus.PAYMENT_FAILED;
     }
 
-    public void markAsShipped(){
-        if(this.status!=OrderStatus.PAID){
+    public void markAsShipped() {
+        if (this.status != OrderStatus.PAID) {
             throw new IllegalStateException("Order must be paid before shipping");
         }
-        this.status=OrderStatus.SHIPPED;
+        this.status = OrderStatus.SHIPPED;
     }
 
-    public void markAsDelivered(){
-        if(this.status!=OrderStatus.SHIPPED){
+    public void markAsDelivered() {
+        if (this.status != OrderStatus.SHIPPED) {
             throw new IllegalStateException("Order must be SHIPPED before delivery");
         }
-        this.status=OrderStatus.DELIVERED;
+        this.status = OrderStatus.DELIVERED;
     }
 
+    public void markAsCancel() {
+        if (this.status == OrderStatus.SHIPPED || this.status == OrderStatus.DELIVERED) {
+            throw new IllegalStateException("Cannot cancel shipped or delivered order");
+        }
+        this.status=OrderStatus.CANCELLED;
+    }
 }

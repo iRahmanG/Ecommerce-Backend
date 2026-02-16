@@ -55,6 +55,9 @@ public class Product {
 
         this.stock -= quantity;
     }
+    public void increaseStock(int quantity) {
+        this.stock+=quantity;
+    }
 
     // ===== Getters =====
 
@@ -67,4 +70,6 @@ public class Product {
     public BigDecimal getPrice() { return price; }
 
     public int getStock() { return stock; }
+
+
 }

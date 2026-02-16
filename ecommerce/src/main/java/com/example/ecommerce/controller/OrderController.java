@@ -2,6 +2,7 @@ package com.example.ecommerce.controller;
 
 import com.example.ecommerce.dto.OrderRequest;
 import com.example.ecommerce.dto.OrderResponse;
+import com.example.ecommerce.entity.Cart;
 import com.example.ecommerce.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,16 +28,18 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasRole('USER')")
-    public String getOrders(){
-        return "User Orders";
+    public List<OrderResponse> getOrders(){
+        return orderService.getAllOrders();
     }
 
     @GetMapping("/my")
     public ResponseEntity<List<OrderResponse>> myOrders(){
         List<OrderResponse> response = orderService.getOrdersForCurrentUser();
         return ResponseEntity.ok(response);
-
     }
-
-
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id){
+        OrderResponse response = orderService.getOrderById(id);
+        return ResponseEntity.ok(response);
+    }
 }
