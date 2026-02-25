@@ -240,7 +240,6 @@ This project demonstrates:
 
 * Refresh Token support
 * Product search & filtering with pagination
-* Order status lifecycle (CREATED → SHIPPED → DELIVERED)
 * Payment gateway integration (Stripe / Razorpay)
 * Wishlist functionality
 * Product reviews & ratings
